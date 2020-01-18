@@ -3,6 +3,15 @@
 #include <Arduino.h>
 #include <SPI.h>
 
+#ifndef POWER_PHASE_COUNT
+#define POWER_PHASE_COUNT 3
+#endif
+
+#define PHASE_PARAM_INDEX_1	0
+#define PHASE_PARAM_INDEX_2	1
+#define PHASE_PARAM_INDEX_3	2
+#define PHASE_PARAM_INDEX_TOTAL	3
+
 #define WRITE 0 // WRITE SPI
 #define READ 1 	// READ SPI
 #define DEBUG_SERIAL
@@ -14,7 +23,7 @@
 #define FuncEn0 0x03 		// Function Enable0
 #define FuncEn1 0x04 		// Function Enable1
 #define ZXConfig 0x07 		// Zero-Crossing Config
-#define SagTh 0x08 			// Voltage Sag Th
+#define SagTh 0x08 	        // Voltage Sag Th
 #define PhaseLossTh 0x09 	// Voltage Phase Losing Th
 #define INWarnTh0 0x0A 		// N Current Line Th
 #define INWarnTh1 0x0B 		// Voltage ADC Th
@@ -189,6 +198,7 @@
 #define UrmsA 0xD9 			// A RMS Voltage
 #define UrmsB 0xDA 			// B RMS Voltage
 #define UrmsC 0xDB 			// C RMS Voltage
+
 #define IrmsN0 0xDC 		// N Calculated Current (USE)
 #define IrmsA 0xDD 			// A RMS Current
 #define IrmsB 0xDE 			// B RMS Current
@@ -212,13 +222,13 @@
 #define IrmsCLSB 0xEF		// Lower Word (C RMS Current)
 
 /* THD, FREQUENCY, ANGLE & TEMP REGISTERS*/
-#define THDNUA 0xF1 		// A Voltage THD+N
-#define THDNUB 0xF2 		// B Voltage THD+N
-#define THDNUC 0xF3 		// C Voltage THD+N
+#define ThdnUA 0xF1 		// A Voltage THD+N
+#define ThdnUB 0xF2 		// B Voltage THD+N
+#define ThdnUC 0xF3 		// C Voltage THD+N
 ///////////////// 0xF4	    // Reserved Register	
-#define THDNIA 0xF5 		// A Current THD+N
-#define THDNIB 0xF6 		// B Current THD+N
-#define THDNIC 0xF7 		// V Current THD+N
+#define ThdnIA 0xF5 		// A Current THD+N
+#define ThdnIB 0xF6 		// B Current THD+N
+#define ThdnIC 0xF7 		// V Current THD+N
 #define Freq 0xF8 			// Frequency
 #define PAngleA 0xF9 		// A Mean Phase Angle
 #define PAngleB 0xFA 		// B Mean Phase Angle
@@ -227,6 +237,22 @@
 #define UangleA 0xFD		// A Voltage Phase Angle
 #define UangleB 0xFE		// B Voltage Phase Angle
 #define UangleC 0xFF		// C Voltage Phase Angle
+
+// Combined Registers
+const uint8_t Urms[3] = {UrmsA,UrmsB,UrmsC};
+const uint8_t Irms[3] = {IrmsA,IrmsB,IrmsC};
+const uint8_t Pmean[4] = {PmeanA,PmeanB,PmeanC, PmeanT};
+const uint8_t Qmean[4] = {QmeanA,QmeanB,QmeanC, QmeanT};
+const uint8_t Smean[4] = {SmeanA,SmeanB,SmeanC,SmeanT};
+const uint8_t ThdnU[3] = {ThdnUA,ThdnUB,ThdnUC};
+const uint8_t ThdnI[3] = {ThdnIA,ThdnIB,ThdnIC};
+const uint8_t PFmean[4] = {PFmeanA,PFmeanB,PFmeanC,PFmeanT};
+const uint8_t Uangle[3] = {UangleA,UangleB,UangleC};
+
+
+// Other Values
+#define SoftResetValue	0x789A
+
 
 	class ATM90E36
 	{
@@ -237,50 +263,68 @@
 		ATM90E36(int pin);
 
 		/* Initialization Functions */	
+		void reset();
 		void begin();
 		void calibrate(unsigned int Ugaina,unsigned int Ugainb,unsigned int Ugainc, unsigned int Igaina, unsigned int Igainb, unsigned int Igainc,unsigned int mMode0 );
-				/* Main Electrical Parameters (GET)*/
-		double GetVHarmA();
+		bool testSPI();
+		/* Main Electrical Parameters (GET)*/
+		
+		/* Main Electrical Parameters (GET)*/
+		/* double GetVHarmA();
 		double GetVHarmB();
 		double GetVHarmC();
 		double GetCHarmA();
 		double GetCHarmB();
-		double GetCHarmC();
-		/* Main Electrical Parameters (GET)*/
+		double GetCHarmC(); */
+		
+		double GetVHarm(int i);
+		double GetCHarm(int i);
+		
+
+		/* 
 		double GetLineVoltageA();
 		double GetLineVoltageB();
-		double GetLineVoltageC();
+		double GetLineVoltageC(); 
+		*/
+		double GetLineVoltage(int i);
 
-		double GetLineCurrentA();
+		/* double GetLineCurrentA();
 		double GetLineCurrentB();
 		double GetLineCurrentC();
-		double GetLineCurrentN();
+		double GetLineCurrentN(); */
+		double GetLineCurrent(int i);
 
-		double GetActivePowerA();
+		/* double GetActivePowerA();
 		double GetActivePowerB();
 		double GetActivePowerC();
-		double GetTotalActivePower();
+		double GetTotalActivePower(); */
+		double GetActivePower(int i);
 
-		double GetReactivePowerA();
+		/* double GetReactivePowerA();
 		double GetReactivePowerB();
 		double GetReactivePowerC();
-		double GetTotalReactivePower();
+		double GetTotalReactivePower(); */
+		double GetReactivePower(int i);
 
-		double GetApparentPowerA();
+		/* double GetApparentPowerA();
 		double GetApparentPowerB();
 		double GetApparentPowerC();
-		double GetTotalApparentPower();
+		double GetTotalApparentPower(); */
+		double GetApparentPower(int i);
+		
 
 		double GetFrequency();
 
-		double GetPowerFactorA();
+		/* double GetPowerFactorA();
 		double GetPowerFactorB();
 		double GetPowerFactorC();
-		double GetTotalPowerFactor();
+		double GetTotalPowerFactor(); */
+		double GetPowerFactor(int i);
 
-		double GetPhaseA();
+		/* double GetPhaseA();
 		double GetPhaseB();
-		double GetPhaseC();
+		double GetPhaseC(); */
+		double GetPhase(int i);
 
 		double GetTemperature();
 

@@ -1,4 +1,5 @@
 #include "ATM90E36.h"
+
 typedef struct
 {
   int Ugaina =0x0002;
@@ -123,7 +124,7 @@ and Frequency
 - Also gets the temperature
 */
 // VOLTAGE
-double  ATM90E36::GetLineVoltageA() {
+/* double  ATM90E36::GetLineVoltageA() {
   unsigned short voltage = CommEnergyIC(READ, UrmsA, 0x0000);
   return (double)voltage / 100;
 }
@@ -136,10 +137,15 @@ double  ATM90E36::GetLineVoltageB() {
 double  ATM90E36::GetLineVoltageC() {
   unsigned short voltage = CommEnergyIC(READ, UrmsC, 0x0000);
   return (double)voltage / 100;
+} */
+
+double ATM90E36::GetLineVoltage(int i){
+  unsigned short voltage = CommEnergyIC(READ, Urms[i], 0x0000);
+  return (double) voltage/100;
 }
 
 // CURRENT
-double ATM90E36::GetLineCurrentA() {
+/* double ATM90E36::GetLineCurrentA() {
   unsigned short current = CommEnergyIC(READ, IrmsA, 0x0000);
   return (double)current / 1000;
 }
@@ -154,10 +160,16 @@ double ATM90E36::GetLineCurrentC() {
 double ATM90E36::GetLineCurrentN() {
   unsigned short current = CommEnergyIC(READ, IrmsN0, 0x0000);
   return (double)current / 1000;
+} 
+*/
+
+double ATM90E36::GetLineCurrent( int i) {
+  unsigned short current = CommEnergyIC(READ, Irms[i], 0x0000);
+  return (double)current / 1000;
 }
 
 // ACTIVE POWER
-double ATM90E36::GetActivePowerA() {
+/* double ATM90E36::GetActivePowerA() {
   signed short apower = (signed short) CommEnergyIC(READ, PmeanA, 0x0000); 
   if (apower & 0x8000) {
     apower= (apower & 0x7FFF) * -1;
@@ -180,14 +192,27 @@ double ATM90E36::GetActivePowerC() {
 }
 double ATM90E36::GetTotalActivePower() {
   signed short apower = (signed short) CommEnergyIC(READ, PmeanT, 0x0000); 
-  /*if (apower & 0x8000) {
-    apower= (apower & 0x7FFF) * -1;
-  }*/
+  // if (apower & 0x8000) {
+  //   apower= (apower & 0x7FFF) * -1;
+  // }
   return (double)apower / 250;
+} */
+double ATM90E36::GetActivePower(int i) {
+  signed short apower = 0;
+  apower = (signed short) CommEnergyIC(READ, Pmean[i], 0x0000);
+  // if (apower & 0x8000) {
+  //     apower= (apower & 0x7FFF) * -1;
+  // }
+  if(i == PHASE_PARAM_INDEX_TOTAL){
+    return (double)apower / 250;
+  }else{
+    return (double)apower / 1000;
+  }
+  return (double)apower / 1000;
 }
 
 // REACTIVE POWER
-double ATM90E36::GetReactivePowerA() {
+/* double ATM90E36::GetReactivePowerA() {
   signed short apower = (signed short) CommEnergyIC(READ, QmeanA, 0x0000); 
   if (apower & 0x8000) {
     apower= (apower & 0x7FFF) * -1;
@@ -210,14 +235,27 @@ double ATM90E36::GetReactivePowerC() {
 }
 double ATM90E36::GetTotalReactivePower() {
   signed short apower = (signed short) CommEnergyIC(READ, QmeanT, 0x0000); 
-  /*if (apower & 0x8000) {
-    apower= (apower & 0x7FFF) * -1;
-  }*/
+  // if (apower & 0x8000) {
+  //   apower= (apower & 0x7FFF) * -1;
+  // }
   return (double)apower / 250;
+} */
+double ATM90E36::GetReactivePower(int i) {
+  signed short apower = 0;
+  apower = (signed short) CommEnergyIC(READ, Qmean[i], 0x0000);
+  // if (apower & 0x8000) {
+  //     apower= (apower & 0x7FFF) * -1;
+  // }
+  if(i == PHASE_PARAM_INDEX_TOTAL){
+    return (double)apower / 250;
+  }else{
+    return (double)apower / 1000;
+  }
+  return (double)apower / 1000;
 }
 
 // APPARENT POWER
-double ATM90E36::GetApparentPowerA() {
+/* double ATM90E36::GetApparentPowerA() {
   signed short apower = (signed short) CommEnergyIC(READ, SmeanA, 0x0000); 
   if (apower & 0x8000) {
     apower= (apower & 0x7FFF) * -1;
@@ -244,6 +282,19 @@ double ATM90E36::GetTotalApparentPower() {
     apower= (apower & 0x7FFF) * -1;
   }
   return (double)apower / 250;
+} */
+double ATM90E36::GetApparentPower(int i) {
+  signed short apower = 0;
+  apower = (signed short) CommEnergyIC(READ, Smean[i], 0x0000);
+  // if (apower & 0x8000) {
+  //     apower= (apower & 0x7FFF) * -1;
+  // }
+  if(i == PHASE_PARAM_INDEX_TOTAL){
+    return (double)apower / 250;
+  }else{
+    return (double)apower / 1000;
+  }
+  return (double)apower / 1000;
 }
 
 // FREQUENCY
@@ -286,7 +337,7 @@ double ATM90E36::GetFrequency() {
 
 
 // VOLTAGE Harmonics
-double  ATM90E36::GetVHarmA() {
+/* double  ATM90E36::GetVHarmA() {
   unsigned short value = CommEnergyIC(READ, THDNUA, 0xFFFF);
   return (double)value;
 }
@@ -298,8 +349,13 @@ double  ATM90E36::GetVHarmC() {
   unsigned short value = CommEnergyIC(READ, THDNUC, 0xFFFF);
   return (double)value;
 }
+ */
+double  ATM90E36::GetVHarm(int i) {
+  unsigned short value = CommEnergyIC(READ, ThdnU[i], 0xFFFF);
+  return (double)value;
+}
 // Current Harmonics
-double  ATM90E36::GetCHarmA() {
+/* double  ATM90E36::GetCHarmA() {
   unsigned short value = CommEnergyIC(READ, THDNIA, 0xFFFF);
   return (double)value;
 }
@@ -311,8 +367,13 @@ double  ATM90E36::GetCHarmC() {
   unsigned short value = CommEnergyIC(READ, THDNIC, 0xFFFF);
   return (double)value;
 }
+ */
+double  ATM90E36::GetCHarm(int i) {
+  unsigned short value = CommEnergyIC(READ, ThdnI[i], 0xFFFF);
+  return (double)value;
+}
 
-double ATM90E36::GetPowerFactorA() {
+/* double ATM90E36::GetPowerFactorA() {
   short pf = (short) CommEnergyIC(READ, PFmeanA, 0xFFFF); 
   //if negative
   //  if (pf & 0x8000) {
@@ -342,9 +403,18 @@ double ATM90E36::GetTotalPowerFactor() {
   //   pf = (pf & 0x7FFF) * -1;
   // }
   return (double)pf / 1000;
+} */
+double ATM90E36::GetPowerFactor(int i) {
+  short pf = (short) CommEnergyIC(READ, PFmean[i], 0xFFFF); 
+  // //if negative
+  // if (pf & 0x8000) {
+  //   pf = (pf & 0x7FFF) * -1;
+  // }
+  return (double)pf / 1000;
 }
+
 // PHASE ANGLE
-double ATM90E36::GetPhaseA() {
+/* double ATM90E36::GetPhaseA() {
   signed short apower = (signed short) CommEnergyIC(READ, UangleA, 0xFFFF);
   return (double)apower / 10;
 }
@@ -354,6 +424,10 @@ double ATM90E36::GetPhaseB() {
 }
 double ATM90E36::GetPhaseC() {
   signed short apower = (signed short) CommEnergyIC(READ, UangleC, 0xFFFF);
+  return (double)apower / 10;
+} */
+double ATM90E36::GetPhase(int i) {
+  signed short apower = (signed short) CommEnergyIC(READ, Uangle[i], 0xFFFF);
   return (double)apower / 10;
 }
 
@@ -374,12 +448,6 @@ double ATM90E36::GetImportEnergy() {
   unsigned short ienergyT = CommEnergyIC(READ, APenergyT, 0xFFFF);
   // Serial.print("Value of energy from Lib");
   // Serial.println(ienergyT);
-  for(int a=0;a<1000;a++){
-  }
-  unsigned short ienergyA = CommEnergyIC(READ, APenergyA, 0xFFFF);
-  for(int a=0;a<1000;a++){
-  }
-  unsigned short ienergyB = CommEnergyIC(READ, APenergyB, 0xFFFF);
   // unsigned short ienergyC = CommEnergyIC(READ, APenergyC, 0xFFFF);
 
   // unsigned short renergyT = CommEnergyIC(READ, RPenergyT, 0xFFFF);
@@ -393,30 +461,6 @@ double ATM90E36::GetImportEnergy() {
   // unsigned short senergyC = CommEnergyIC(READ, SenergyC, 0xFFFF);
   // return (double)(((ienergyB-ienergyA) /3.2)*3600);
   return (double)(((ienergyT) /3.2)*3600); //returns kWh
-}
-double ATM90E36::GetImportEnergydiff() {
-  // unsigned short ienergyT = CommEnergyIC(READ, APenergyT, 0xFFFF);
-  // Serial.print("Value of energy from Lib");
-  // Serial.println(ienergyT);
-  for(int a=0;a<1000;a++){
-  }
-  unsigned short ienergyA = CommEnergyIC(READ, APenergyA, 0xFFFF);
-  for(int a=0;a<1000;a++){
-  }
-  unsigned short ienergyB = CommEnergyIC(READ, APenergyB, 0xFFFF);
-  // unsigned short ienergyC = CommEnergyIC(READ, APenergyC, 0xFFFF);
-
-  // unsigned short renergyT = CommEnergyIC(READ, RPenergyT, 0xFFFF);
-  // unsigned short renergyA = CommEnergyIC(READ, RPenergyA, 0xFFFF);
-  // unsigned short renergyB = CommEnergyIC(READ, RPenergyB, 0xFFFF);
-  // unsigned short renergyC = CommEnergyIC(READ, RPenergyC, 0xFFFF);
-
-  // unsigned short senergyT = CommEnergyIC(READ, SAenergyT, 0xFFFF);
-  // unsigned short senergyA = CommEnergyIC(READ, SenergyA, 0xFFFF);
-  // unsigned short senergyB = CommEnergyIC(READ, SenergyB, 0xFFFF);
-  // unsigned short senergyC = CommEnergyIC(READ, SenergyC, 0xFFFF);
-  return (double)(((ienergyB-ienergyA) /3.2)*3600);
-  // return (double)(((ienergyT) /3.2)*3600); //returns kWh
 }
 double ATM90E36::GetExportEnergy() {
 
@@ -448,6 +492,7 @@ unsigned short  ATM90E36::GetMeterStatus0() {
 unsigned short  ATM90E36::GetMeterStatus1() {
   return CommEnergyIC(READ, EnStatus1, 0xFFFF);
 }
+// Deprecated
 bool ATM90E36::errorCheckSPI()
 { 
   int  PLConstH =0x0861;
@@ -460,11 +505,14 @@ bool ATM90E36::errorCheckSPI()
  int l= (int)CommEnergyIC(READ, MMode0, 0xFFFF);      
  int m= (int)CommEnergyIC(READ, MMode1, 0xFFFF);
  if((i!=0)||(j!=PLConstH)||(k!=PLConstL)||(l!=MMode00)||(m!=MMode01)){
-   return 1;
+   return true;
  }
  else{
-   return 0;
+   return false;
  }
+}
+bool ATM90E36::testSPI(){
+  return true;
 }
 
 /* Checksum Error Function */
@@ -521,6 +569,13 @@ bool ATM90E36::calibrationError()
   if (CS0 || CS1 || CS2 || CS3) return (true); 
   else return (false);
 
+}
+/**
+ *  RESET Function
+ *
+ */ 
+void ATM90E36::reset(){
+   CommEnergyIC(WRITE, SoftReset, SoftResetValue);
 }
 
 /* BEGIN FUNCTION */
