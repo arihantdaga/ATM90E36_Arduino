@@ -23,8 +23,11 @@
   SOFTWARE.
 */
 #include <ATM90E36.h>
+#include <Embedis.h>
 #include <SPI.h>
 #define DEBUG_PORT Serial
+
+Embedis embedis(DEBUG_PORT);
 ATM90E36 eic(PA4);
 
 void setup() {
@@ -38,67 +41,121 @@ void setup() {
   eic.begin_simple();
   delay(1000);
   calibrate();
+  embedisSetup();
 }
 
 void loop() {
   static unsigned long count = 1;
   /*Repeatedly fetch some values from the ATM90E36 */
-  double voltageA, freq, voltageB, voltageC, currentA, currentB, currentC,
-      power, pf, new_current, new_power;
-  double pfa, pfb, pfc, pft, paa, pab, pac, pat;
   delay(100);
   int sys0 = eic.GetSysStatus0();
   int sys1 = eic.GetSysStatus1();
   int en0 = eic.GetMeterStatus0();
   int en1 = eic.GetMeterStatus1();
   Serial.print("S0:0x");
-  Serial.println(sys0, BIN);
+  Serial.println(sys0 & 0xFFFF, BIN);
   Serial.print("S1:0x");
-  Serial.println(sys1, BIN);
+  Serial.println(sys1 & 0xFFFF, BIN);
   Serial.println("E0:0x" + String(en0, HEX));
   Serial.println("E1:0x" + String(en1, HEX));
-  voltageA = eic.GetLineVoltage(0);
-  Serial.println("VA:" + String(voltageA) + "V");
-  voltageB = eic.GetLineVoltage(1);
-  Serial.println("VB:" + String(voltageB) + "V");
-  voltageC = eic.GetLineVoltage(2);
-  Serial.println("VC:" + String(voltageC) + "V");
+  printMeteringData();
   if (eic.testICDefaults()) {
     Serial.println("ERROR: Test IC Defaults Failed");
   }
   if (eic.calibrationError() || eic.checkOperationModeError()) {
     Serial.println("Error In Calibration, Calibrating Again");
+    eic.reset();
     calibrate();
   }
   if (count++ % 5 == 0) {
     // We have done 5 loops, now we'll intentionally reset the IC and check if
     // the calibration values are retained.
-    Serial.println(eic.GetValueRegister(UgainA), HEX);
-    Serial.println(eic.GetValueRegister(UgainB), HEX);
-    Serial.println(eic.GetValueRegister(UgainC), HEX);
-    Serial.println(eic.GetValueRegister(IgainA), HEX);
-    Serial.println(eic.GetValueRegister(IgainB), HEX);
-    Serial.println(eic.GetValueRegister(ConfigStart), HEX);
-    Serial.println(eic.GetValueRegister(CalStart), HEX);
-    Serial.println(eic.GetValueRegister(HarmStart), HEX);
-    Serial.println(eic.GetValueRegister(AdjStart), HEX);
-    Serial.println("=====================================");
-    eic.reset();
-    delay(1000);
-    Serial.println(eic.GetValueRegister(UgainA), HEX);
-    Serial.println(eic.GetValueRegister(UgainB), HEX);
-    Serial.println(eic.GetValueRegister(UgainC), HEX);
-    Serial.println(eic.GetValueRegister(IgainA), HEX);
-    Serial.println(eic.GetValueRegister(IgainB), HEX);
-    Serial.println(eic.GetValueRegister(ConfigStart), HEX);
-    Serial.println(eic.GetValueRegister(CalStart), HEX);
-    Serial.println(eic.GetValueRegister(HarmStart), HEX);
-    Serial.println(eic.GetValueRegister(AdjStart), HEX);
-    Serial.println("================== END ===================");
+    // resetIcandDisturbCalibration();
   }
-
+  embedis.process();
   delay(100);
-  delay(5000);
+  delay(1000);
+}
+void resetIcandDisturbCalibration() {
+  Serial.println(eic.GetValueRegister(UgainA), HEX);
+  Serial.println(eic.GetValueRegister(UgainB), HEX);
+  Serial.println(eic.GetValueRegister(UgainC), HEX);
+  Serial.println(eic.GetValueRegister(IgainA), HEX);
+  Serial.println(eic.GetValueRegister(IgainB), HEX);
+  Serial.println(eic.GetValueRegister(ConfigStart), HEX);
+  Serial.println(eic.GetValueRegister(CalStart), HEX);
+  Serial.println(eic.GetValueRegister(HarmStart), HEX);
+  Serial.println(eic.GetValueRegister(AdjStart), HEX);
+  Serial.println("=====================================");
+  eic.reset();
+  delay(1000);
+  Serial.println(eic.GetValueRegister(UgainA), HEX);
+  Serial.println(eic.GetValueRegister(UgainB), HEX);
+  Serial.println(eic.GetValueRegister(UgainC), HEX);
+  Serial.println(eic.GetValueRegister(IgainA), HEX);
+  Serial.println(eic.GetValueRegister(IgainB), HEX);
+  Serial.println(eic.GetValueRegister(ConfigStart), HEX);
+  Serial.println(eic.GetValueRegister(CalStart), HEX);
+  Serial.println(eic.GetValueRegister(HarmStart), HEX);
+  Serial.println(eic.GetValueRegister(AdjStart), HEX);
+  Serial.println("================== END ===================");
+}
+CALCULATEGAINS 240 0.83 void embedisSetup() {
+  // Add analogRead command to mirror Arduino's
+  Embedis::command(F("CALCULATEGAINS"), [](Embedis* e) {
+    //     if (e->argc != 2) return e->response(Embedis::ARGS_ERROR);
+    //     int pin = String(e->argv[1]).toInt();
+    //     e->response(':', analogRead(pin));
+
+    GainValue result = eic.calculateGainValues(String(e->argv[1]).toInt(),
+                                               String(e->argv[2]).toInt());
+
+    Serial.println("New Gain Values");
+    for (int i = 0; i < 3; i++) {
+      Serial.print(result.Ugain[i], HEX);
+      Serial.print(",");
+      Serial.print(result.Igain[i], HEX);
+      Serial.print(",  ");
+    }
+    // call CalibrateNew function
+    Serial.println(" ");
+    e->response("Calculated Gain");
+  });
+  Embedis::command(F("RESETIC"),
+                   [](Embedis* e) { resetIcandDisturbCalibration(); });
+}
+
+void printMeteringData() {
+  double voltageA, freq, voltageB, voltageC, currentA, currentB, currentC,
+      power, pf, new_current, new_power;
+  double pfa, pfb, pfc, pft, paa, pab, pac, pat;
+  double powerA, powerB, powerC;
+
+  voltageA = eic.GetLineVoltage(0);
+  voltageB = eic.GetLineVoltage(1);
+  voltageC = eic.GetLineVoltage(2);
+
+  currentA = eic.GetLineCurrent(0);
+  currentB = eic.GetLineCurrent(1);
+  currentC = eic.GetLineCurrent(2);
+
+  powerA = eic.GetActivePower(0);
+  powerB = eic.GetActivePower(1);
+  powerC = eic.GetActivePower(2);
+  power = eic.GetActivePower(3);
+
+  Serial.print("VA:" + String(voltageA) + "V, ");
+  Serial.print("VB:" + String(voltageB) + "V, ");
+  Serial.println("VC:" + String(voltageC) + "V");
+
+  Serial.print("IA:" + String(voltageA) + "A, ");
+  Serial.print("IB:" + String(voltageB) + "A, ");
+  Serial.println("IC:" + String(voltageC) + "A");
+
+  Serial.print("PA:" + String(voltageA) + "W, ");
+  Serial.print("PB:" + String(voltageB) + "W, ");
+  Serial.print("PC:" + String(voltageC) + "W,");
+  Serial.println("Total Power:" + String(voltageB) + "W");
 }
 
 void calibrate() {

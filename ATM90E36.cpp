@@ -1,4 +1,5 @@
 #include "ATM90E36.h"
+#define DEBUG_ATM90E36 1
 #ifndef DEBUG_ATM90E36
 #define DEBUG_ATM90E36 0
 #endif
@@ -17,8 +18,10 @@ typedef struct {
   int Uoffsetc = 0x0000;
   int Ioffsetc = 0x0000;
   int Igainn = 0x0001;
+
 } Calib_val;
 Calib_val calib_val;
+
 ATM90E36::ATM90E36(int pin)  // Object
 {
   // energy_IRQ = 2; 	// (In development...)
@@ -748,7 +751,45 @@ void ATM90E36::calibrateNew(unsigned int Ugaina, unsigned int Ugainb,
  * used by the AP to remember and store , so later it can resend to the IC using
  * calibrate_new() functions
  */
-void calculateGainValues() {}
+GainValue ATM90E36::calculateGainValues(uint16_t currentVoltage,
+                                        double currentCurrent) {
+  GainValue result = {};
+  for (int i = 0; i < 3; i++) {
+    result.Ugain[i] = 0x1;
+    result.Igain[i] = 0x1;
+  }
+  // Calibrating Volatge
+  uint8_t currentRegister = UgainA;
+  for (int i = 0; i < 3; i++) {
+    // Voltage
+#if DEBUG_ATM90E36
+    Serial.print("Calibrating Register : " + String(currentRegister, HEX));
+#endif
+    double readValue = GetLineVoltage(i);
+    uint16_t currentGain = GetValueRegister(currentRegister);
+    readValue = readValue + 0.0001;  // To avoid division by zero.
+    uint16_t newGain = ((currentVoltage / readValue) * (double)currentGain);
+    result.Ugain[i] = newGain;
+    Serial.print("Current Gain : " + String(currentGain, HEX) +
+                 " New gain : " + String(newGain));
+    // Current
+    currentRegister++;
+#if DEBUG_ATM90E36
+    Serial.print("Calibrating Register : " + String(currentRegister, HEX));
+#endif
+    readValue = GetLineCurrent(i);
+    readValue = readValue + 0.0001;  // To avoid division by zero.
+    currentGain = GetValueRegister(currentRegister);
+    newGain = ((currentCurrent / readValue) * (double)currentGain);
+    result.Igain[i] = newGain;
+    Serial.print("Current Gain : " + String(currentGain, HEX) +
+                 " New gain : " + String(newGain));
+
+    currentRegister += 3;
+  }
+
+  return result;
+}
 
 void calculateOffsetValues() {}
 
@@ -811,6 +852,20 @@ void ATM90E36::begin() {
    CommEnergyIC(WRITE, QoffsetC, 0x5678);    // C line reactive power offset
   //  CommEnergyIC(WRITE, CSOne, 0x0000);       // Cheksum 1
    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -984,6 +1039,34 @@ void ATM90E36::calibrate(unsigned int Ugaina, unsigned int Ugainb,
    CommEnergyIC(WRITE, QoffsetC, 0x5678);    // C line reactive power offset
   //  CommEnergyIC(WRITE, CSOne, 0x0000);       // Cheksum 1
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

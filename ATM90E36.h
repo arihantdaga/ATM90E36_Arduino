@@ -249,6 +249,11 @@ const uint8_t ThdnI[3] = {ThdnIA, ThdnIB, ThdnIC};
 const uint8_t PFmean[4] = {PFmeanA, PFmeanB, PFmeanC, PFmeanT};
 const uint8_t Uangle[3] = {UangleA, UangleB, UangleC};
 
+typedef struct {
+  uint16_t Ugain[3];
+  uint16_t Igain[3];
+} GainValue;
+
 // Other Values
 #define SoftResetValue 0x789A
 
@@ -277,7 +282,8 @@ class ATM90E36 {
                     unsigned int Ioffseta, unsigned int Ioffsetb,
                     unsigned int Ioffsetc, unsigned int Ioffsetn,
                     unsigned int mMode0);
-  void calculateGainValues();
+  GainValue calculateGainValues(uint16_t currentVoltage,
+                                uint16_t currentCurrent);
   void calculateOffsetValues();
   bool testICDefaults();
   /* Main Electrical Parameters (GET)*/
