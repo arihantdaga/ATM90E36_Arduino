@@ -282,8 +282,7 @@ class ATM90E36 {
                     unsigned int Ioffseta, unsigned int Ioffsetb,
                     unsigned int Ioffsetc, unsigned int Ioffsetn,
                     unsigned int mMode0);
-  GainValue calculateGainValues(uint16_t currentVoltage,
-                                uint16_t currentCurrent);
+  GainValue calculateGainValues(double currentVoltage, double currentCurrent);
   void calculateOffsetValues();
   bool testICDefaults();
   /* Main Electrical Parameters (GET)*/

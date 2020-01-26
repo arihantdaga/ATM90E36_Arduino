@@ -751,7 +751,7 @@ void ATM90E36::calibrateNew(unsigned int Ugaina, unsigned int Ugainb,
  * used by the AP to remember and store , so later it can resend to the IC using
  * calibrate_new() functions
  */
-GainValue ATM90E36::calculateGainValues(uint16_t currentVoltage,
+GainValue ATM90E36::calculateGainValues(double currentVoltage,
                                         double currentCurrent) {
   GainValue result = {};
   for (int i = 0; i < 3; i++) {
@@ -768,7 +768,8 @@ GainValue ATM90E36::calculateGainValues(uint16_t currentVoltage,
     double readValue = GetLineVoltage(i);
     uint16_t currentGain = GetValueRegister(currentRegister);
     readValue = readValue + 0.0001;  // To avoid division by zero.
-    uint16_t newGain = ((currentVoltage / readValue) * (double)currentGain);
+    uint16_t newGain =
+        floor((currentVoltage / readValue) * (double)currentGain);
     result.Ugain[i] = newGain;
     Serial.print("Current Gain : " + String(currentGain, HEX) +
                  " New gain : " + String(newGain));
@@ -780,10 +781,12 @@ GainValue ATM90E36::calculateGainValues(uint16_t currentVoltage,
     readValue = GetLineCurrent(i);
     readValue = readValue + 0.0001;  // To avoid division by zero.
     currentGain = GetValueRegister(currentRegister);
-    newGain = ((currentCurrent / readValue) * (double)currentGain);
+    newGain = floor((currentCurrent / readValue) * (double)currentGain);
     result.Igain[i] = newGain;
+#if DEBUG_ATM90E36
     Serial.print("Current Gain : " + String(currentGain, HEX) +
                  " New gain : " + String(newGain));
+#endif
 
     currentRegister += 3;
   }
@@ -852,6 +855,7 @@ void ATM90E36::begin() {
    CommEnergyIC(WRITE, QoffsetC, 0x5678);    // C line reactive power offset
   //  CommEnergyIC(WRITE, CSOne, 0x0000);       // Cheksum 1
    
+
 
 
 
@@ -1039,6 +1043,10 @@ void ATM90E36::calibrate(unsigned int Ugaina, unsigned int Ugainb,
    CommEnergyIC(WRITE, QoffsetC, 0x5678);    // C line reactive power offset
   //  CommEnergyIC(WRITE, CSOne, 0x0000);       // Cheksum 1
   
+
+
+
+
 
 
 
