@@ -1,5 +1,4 @@
 #include "ATM90E36.h"
-#define DEBUG_ATM90E36 1
 #ifndef DEBUG_ATM90E36
 #define DEBUG_ATM90E36 0
 #endif
@@ -753,6 +752,7 @@ void ATM90E36::calibrateNew(unsigned int Ugaina, unsigned int Ugainb,
  */
 GainValue ATM90E36::calculateGainValues(double currentVoltage,
                                         double currentCurrent) {
+  // TODO: Improve this function to take readings more then 1 time.
   GainValue result = {};
   for (int i = 0; i < 3; i++) {
     result.Ugain[i] = 0x1;
@@ -765,20 +765,22 @@ GainValue ATM90E36::calculateGainValues(double currentVoltage,
 #if DEBUG_ATM90E36
     Serial.print("Calibrating Register : " + String(currentRegister, HEX));
 #endif
-    double readValue = GetLineVoltage(i);
+    double readValue = _readLineVoltageOverAPeriod(i, 100);
     uint16_t currentGain = GetValueRegister(currentRegister);
     readValue = readValue + 0.0001;  // To avoid division by zero.
     uint16_t newGain =
         floor((currentVoltage / readValue) * (double)currentGain);
     result.Ugain[i] = newGain;
+#if DEBUG_ATM90E36
     Serial.print("Current Gain : " + String(currentGain, HEX) +
                  " New gain : " + String(newGain));
+#endif
     // Current
     currentRegister++;
 #if DEBUG_ATM90E36
     Serial.print("Calibrating Register : " + String(currentRegister, HEX));
 #endif
-    readValue = GetLineCurrent(i);
+    readValue = _readLineCurrentOverAPeriod(i, 100);
     readValue = readValue + 0.0001;  // To avoid division by zero.
     currentGain = GetValueRegister(currentRegister);
     newGain = floor((currentCurrent / readValue) * (double)currentGain);
@@ -854,71 +856,7 @@ void ATM90E36::begin() {
    CommEnergyIC(WRITE, PoffsetC, 0x5678);    // C line active power offset
    CommEnergyIC(WRITE, QoffsetC, 0x5678);    // C line reactive power offset
   //  CommEnergyIC(WRITE, CSOne, 0x0000);       // Cheksum 1
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
    //Set metering calibration values (HARMONIC)
    CommEnergyIC(WRITE, HarmStart, 0x5678);   // Metering calibration startup
    CommEnergyIC(WRITE, POffsetAF, 0x0000);   // A Fund. active power offset
@@ -1047,69 +985,7 @@ void ATM90E36::calibrate(unsigned int Ugaina, unsigned int Ugainb,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   //Set metering calibration values (HARMONIC)
+  //Set metering calibration values (HARMONIC)
    CommEnergyIC(WRITE, HarmStart, 0x5678);   // Metering calibration startup
    CommEnergyIC(WRITE, POffsetAF, 0x0000);   // A Fund. active power offset
    CommEnergyIC(WRITE, POffsetBF, 0x0000);   // B Fund. active power offset
@@ -1176,4 +1052,22 @@ void ATM90E36::calibrate(unsigned int Ugaina, unsigned int Ugainb,
   delay(1000);
   int i = (int)CommEnergyIC(READ, UoffsetA, 0xFFFF);
   //  Serial.println(i,HEX);
+}
+double ATM90E36::_readLineVoltageOverAPeriod(unsigned int i, unsigned int t) {
+  unsigned long start = millis();
+  double readValue = GetLineVoltage(i);
+  // Taking Moving Average
+  while (millis() - start < t) {
+    readValue = 0.9 * GetLineVoltage(i) + (0.1) * readValue;
+  }
+  return readValue;
+}
+double ATM90E36::_readLineCurrentOverAPeriod(unsigned int i, unsigned int t) {
+  unsigned long start = millis();
+  double readValue = GetLineCurrent(i);
+  // Taking Moving Average
+  while (millis() - start < t) {
+    readValue = 0.9 * GetLineCurrent(i) + (0.1) * readValue;
+  }
+  return readValue;
 }

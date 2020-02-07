@@ -367,5 +367,9 @@ class ATM90E36 {
   /* Checksum Function */
   bool calibrationError();
   bool checkOperationModeError();
+
+ private:
+  double _readLineVoltageOverAPeriod(unsigned int i, unsigned int t);
+  double _readLineCurrentOverAPeriod(unsigned int i, unsigned int t);
 };
 #endif

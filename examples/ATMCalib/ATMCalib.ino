@@ -100,7 +100,8 @@ void resetIcandDisturbCalibration() {
   Serial.println(eic.GetValueRegister(AdjStart), HEX);
   Serial.println("================== END ===================");
 }
-CALCULATEGAINS 240 0.83 void embedisSetup() {
+// CALCULATEGAINS 240 0.83 
+void embedisSetup() {
   // Add analogRead command to mirror Arduino's
   Embedis::command(F("CALCULATEGAINS"), [](Embedis* e) {
     //     if (e->argc != 2) return e->response(Embedis::ARGS_ERROR);
@@ -123,6 +124,9 @@ CALCULATEGAINS 240 0.83 void embedisSetup() {
   });
   Embedis::command(F("RESETIC"),
                    [](Embedis* e) { resetIcandDisturbCalibration(); });
+  Embedis::command(F("CALIB"),
+                   [](Embedis* e) { calibrate(); });
+  
 }
 
 void printMeteringData() {
