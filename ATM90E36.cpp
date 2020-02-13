@@ -297,7 +297,7 @@ double ATM90E36::GetApparentPower(int i) {
 
 // FREQUENCY
 double ATM90E36::GetFrequency() {
-  unsigned short freq = CommEnergyIC(READ, Freq, 0xFFFF);
+  unsigned short freq = CommEnergyIC(READ, Freq, 0x0000);
   return (double)freq / 100;
 }
 
@@ -348,7 +348,7 @@ double  ATM90E36::GetVHarmC() {
 }
  */
 double ATM90E36::GetVHarm(int i) {
-  unsigned short value = CommEnergyIC(READ, ThdnU[i], 0xFFFF);
+  unsigned short value = CommEnergyIC(READ, ThdnU[i], 0x0000);
   return (double)value;
 }
 // Current Harmonics
@@ -366,7 +366,7 @@ double  ATM90E36::GetCHarmC() {
 }
  */
 double ATM90E36::GetCHarm(int i) {
-  unsigned short value = CommEnergyIC(READ, ThdnI[i], 0xFFFF);
+  unsigned short value = CommEnergyIC(READ, ThdnI[i], 0x0000);
   return (double)value;
 }
 
@@ -402,7 +402,7 @@ double ATM90E36::GetTotalPowerFactor() {
   return (double)pf / 1000;
 } */
 double ATM90E36::GetPowerFactor(int i) {
-  short pf = (short)CommEnergyIC(READ, PFmean[i], 0xFFFF);
+  short pf = (short)CommEnergyIC(READ, PFmean[i], 0x0000);
   // //if negative
   // if (pf & 0x8000) {
   //   pf = (pf & 0x7FFF) * -1;
@@ -424,7 +424,7 @@ double ATM90E36::GetPhaseC() {
   return (double)apower / 10;
 } */
 double ATM90E36::GetPhase(int i) {
-  signed short apower = (signed short)CommEnergyIC(READ, Uangle[i], 0xFFFF);
+  signed short apower = (signed short)CommEnergyIC(READ, Uangle[i], 0x0000);
   return (double)apower / 10;
 }
 
@@ -442,7 +442,7 @@ unsigned short ATM90E36::GetValueRegister(unsigned short registerRead) {
 
 // ENERGY MEASUREMENT
 double ATM90E36::GetImportEnergy() {
-  unsigned short ienergyT = CommEnergyIC(READ, APenergyT, 0xFFFF);
+  unsigned short ienergyT = CommEnergyIC(READ, APenergyT, 0x0000);
   // Serial.print("Value of energy from Lib");
   // Serial.println(ienergyT);
   // unsigned short ienergyC = CommEnergyIC(READ, APenergyC, 0xFFFF);
@@ -457,10 +457,10 @@ double ATM90E36::GetImportEnergy() {
   // unsigned short senergyB = CommEnergyIC(READ, SenergyB, 0xFFFF);
   // unsigned short senergyC = CommEnergyIC(READ, SenergyC, 0xFFFF);
   // return (double)(((ienergyB-ienergyA) /3.2)*3600);
-  return (double)(((ienergyT) / 3.2) * 3600);  // returns kWh
+  return (double)(((double)ienergyT / 0.32) * 3600);  // returns kWh
 }
 double ATM90E36::GetExportEnergy() {
-  unsigned short eenergyT = CommEnergyIC(READ, ANenergyT, 0xFFFF);
+  unsigned short eenergyT = CommEnergyIC(READ, ANenergyT, 0x0000);
   // Serial.print("Value of Export energy from Lib");
   // Serial.println(eenergyT);
   // unsigned short eenergyA = CommEnergyIC(READ, ANenergyA, 0xFFFF);
@@ -472,7 +472,7 @@ double ATM90E36::GetExportEnergy() {
   // unsigned short reenergyB = CommEnergyIC(READ, RNenergyB, 0xFFFF);
   // unsigned short reenergyC = CommEnergyIC(READ, RNenergyC, 0xFFFF);
 
-  return (double)eenergyT / 100 / 3200;  // returns kWh
+  return (double)(((double)eenergyT / 0.32) * 3600);  // returns kWh
 }
 
 /* System Status Registers */
@@ -922,8 +922,6 @@ void ATM90E36::begin() {
 
   //  CommEnergyIC(WRITE, SoftReset, 0x789A);   // Perform soft reset
   delay(1000);
-  int i = (int)CommEnergyIC(READ, UoffsetA, 0xFFFF);
-  //  Serial.println(i,HEX);
 }
 void ATM90E36::calibrate(unsigned int Ugaina, unsigned int Ugainb,
                          unsigned int Ugainc, unsigned int Igaina,
@@ -1050,8 +1048,6 @@ void ATM90E36::calibrate(unsigned int Ugaina, unsigned int Ugainb,
 
   //  CommEnergyIC(WRITE, SoftReset, 0x789A);   // Perform soft reset
   delay(1000);
-  int i = (int)CommEnergyIC(READ, UoffsetA, 0xFFFF);
-  //  Serial.println(i,HEX);
 }
 double ATM90E36::_readLineVoltageOverAPeriod(unsigned int i, unsigned int t) {
   unsigned long start = millis();

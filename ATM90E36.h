@@ -250,8 +250,8 @@ const uint8_t PFmean[4] = {PFmeanA, PFmeanB, PFmeanC, PFmeanT};
 const uint8_t Uangle[3] = {UangleA, UangleB, UangleC};
 
 typedef struct {
-  uint16_t Ugain[3];
-  uint16_t Igain[3];
+  uint16_t Ugain[4] = {0, 0, 0, 0};
+  uint16_t Igain[4] = {0, 0, 0, 0};
 } GainValue;
 
 // Other Values
