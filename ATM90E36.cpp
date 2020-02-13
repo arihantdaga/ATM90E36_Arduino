@@ -457,7 +457,7 @@ double ATM90E36::GetImportEnergy() {
   // unsigned short senergyB = CommEnergyIC(READ, SenergyB, 0xFFFF);
   // unsigned short senergyC = CommEnergyIC(READ, SenergyC, 0xFFFF);
   // return (double)(((ienergyB-ienergyA) /3.2)*3600);
-  return (double)(((double)ienergyT / 0.32) * 3600);  // returns kWh
+  return (double)(((double)ienergyT / 32) * 3600);  // returns kWh
 }
 double ATM90E36::GetExportEnergy() {
   unsigned short eenergyT = CommEnergyIC(READ, ANenergyT, 0x0000);
@@ -472,7 +472,7 @@ double ATM90E36::GetExportEnergy() {
   // unsigned short reenergyB = CommEnergyIC(READ, RNenergyB, 0xFFFF);
   // unsigned short reenergyC = CommEnergyIC(READ, RNenergyC, 0xFFFF);
 
-  return (double)(((double)eenergyT / 0.32) * 3600);  // returns kWh
+  return (double)(((double)eenergyT / 32) * 3600);  // returns kWh
 }
 
 /* System Status Registers */
