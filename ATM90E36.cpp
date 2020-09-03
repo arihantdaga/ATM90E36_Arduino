@@ -461,7 +461,7 @@ double ATM90E36::GetImportEnergy() {
 }
 double ATM90E36::GetImportEnergy(int i) {
   unsigned short ienergy = (signed short)CommEnergyIC(READ, APenergy[i], 0x0000);
-  return (double)(((double)ienergyT / 32) * 3600);  // returns kWh
+  return (double)(((double)ienergy / 32) * 3600);  // returns kWh
 }
 
 double ATM90E36::GetExportEnergy() {
