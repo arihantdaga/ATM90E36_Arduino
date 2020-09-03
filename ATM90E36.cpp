@@ -459,6 +459,11 @@ double ATM90E36::GetImportEnergy() {
   // return (double)(((ienergyB-ienergyA) /3.2)*3600);
   return (double)(((double)ienergyT / 32) * 3600);  // returns kWh
 }
+double ATM90E36::GetImportEnergy(int i) {
+  unsigned short ienergy = (signed short)CommEnergyIC(READ, APenergy[i], 0x0000);
+  return (double)(((double)ienergyT / 32) * 3600);  // returns kWh
+}
+
 double ATM90E36::GetExportEnergy() {
   unsigned short eenergyT = CommEnergyIC(READ, ANenergyT, 0x0000);
   // Serial.print("Value of Export energy from Lib");

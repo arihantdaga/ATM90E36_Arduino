@@ -248,6 +248,7 @@ const uint8_t ThdnU[3] = {ThdnUA, ThdnUB, ThdnUC};
 const uint8_t ThdnI[3] = {ThdnIA, ThdnIB, ThdnIC};
 const uint8_t PFmean[4] = {PFmeanA, PFmeanB, PFmeanC, PFmeanT};
 const uint8_t Uangle[3] = {UangleA, UangleB, UangleC};
+const uint8_t APenergy[4] = {APenergyA, APenergyB, APenergyC, APenergyT}
 
 typedef struct {
   uint16_t Ugain[4] = {0, 0, 0, 0};
@@ -348,7 +349,8 @@ class ATM90E36 {
   unsigned short GetValueRegister(unsigned short registerRead);
 
   /* Energy Consumption */
-  double GetImportEnergy();
+  double GetImportEnergy(int i);
+  double GetImportEnergy();   // Keeping this for backward compatibility
   double GetExportEnergy();
   double GetImportEnergydiff();
 
